@@ -8,7 +8,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) routes() *httprouter.Router {
+func (app *application) routes() http.Handler {
 	// Create a new httprouter router instance
 	router := httprouter.New()
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
@@ -20,5 +20,5 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodPatch, "/v1/coltech_items/:id", app.updateCOLTECHItemHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/coltech_items/:id", app.deleteCOLTECHItemHandler)
 
-	return router
+	return app.recoverPanic(router)
 }
