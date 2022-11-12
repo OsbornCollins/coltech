@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"coltech.osborncollins.net/internal/data"
 	"coltech.osborncollins.net/internal/validator"
@@ -114,12 +115,16 @@ func (app *application) updateCOLTECHItemHandler(w http.ResponseWriter, r *http.
 	// default value of nil false
 	// if a field remains nil then we know that the client did not update it
 	var input struct {
-		Summary     *string `json:"summary"`
-		Description *string `json:"description"`
-		Department  *string `json:"department"`
-		Category    *string `json:"category"`
-		Priority    *string `json:"priority"`
-		Created_by  *string `json:"created_by"`
+		Summary     *string    `json:"summary"`
+		Description *string    `json:"desription"`
+		Priority    *string    `json:"priority"`
+		Status      *string    `json:"status"`
+		Assigned_to *string    `json:"assigned_to"`
+		Category    *string    `json:"category"`
+		Department  *string    `json:"department"`
+		Closed_on   *time.Time `json:"closed_on"`
+		Created_by  *string    `json:"created_by"`
+		Due_on      *time.Time `json:"due_on"`
 	}
 
 	//Initalize a new json.Decoder instance
@@ -135,17 +140,29 @@ func (app *application) updateCOLTECHItemHandler(w http.ResponseWriter, r *http.
 	if input.Description != nil {
 		coltech.Description = *input.Description
 	}
-	if input.Department != nil {
-		coltech.Department = *input.Department
+	if input.Priority != nil {
+		coltech.Priority = *input.Priority
+	}
+	if input.Status != nil {
+		coltech.Status = *input.Status
+	}
+	if input.Assigned_to != nil {
+		coltech.Assigned_to = *input.Assigned_to
 	}
 	if input.Category != nil {
 		coltech.Category = *input.Category
 	}
-	if input.Priority != nil {
-		coltech.Priority = *input.Priority
+	if input.Department != nil {
+		coltech.Department = *input.Department
+	}
+	if input.Closed_on != nil {
+		coltech.Closed_on = *input.Closed_on
 	}
 	if input.Created_by != nil {
 		coltech.Status = *input.Created_by
+	}
+	if input.Due_on != nil {
+		coltech.Due_on = *input.Due_on
 	}
 
 	// Perform Validation on the updated coltech item. If validation fails then

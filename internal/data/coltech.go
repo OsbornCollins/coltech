@@ -39,10 +39,6 @@ func ValidateColtech(v *validator.Validator, coltech *Coltech) {
 	v.Check(coltech.Description != "", "description", "must be provided")
 	v.Check(len(coltech.Description) <= 1000, "level", "must not be more than 1000 bytes long")
 
-	// Priority validation
-	v.Check(coltech.Priority != "", "priority", "must be provided")
-	v.Check(len(coltech.Priority) <= 100, "priority", "must not be more than 100 bytes long")
-
 	// Category validation
 	v.Check(coltech.Category != "", "category", "must be provided")
 	v.Check(len(coltech.Category) <= 200, "category", "must not be more than 200 bytes long")
@@ -65,15 +61,15 @@ type ColtechModel struct {
 // Insert() allows us to create a new coltech item
 func (m ColtechModel) Insert(coltech *Coltech) error {
 	query := `
-	INSERT INTO tblcoltech (summary, description, priority, category, department, created_by)
-	VALUES ($1, $2, $3, $4, $5, $6)
+	INSERT INTO tblcoltech (summary, description, category, department, created_by)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id, created_on, version
 	`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	// Cleanup to prevent memory leaks
 	defer cancel()
 	// Collect the data fields into a slice
-	args := []interface{}{coltech.Summary, coltech.Description, coltech.Priority,
+	args := []interface{}{coltech.Summary, coltech.Description,
 		coltech.Category, coltech.Department, coltech.Created_by,
 	}
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&coltech.ID, &coltech.Created_on, &coltech.Version)
@@ -130,12 +126,12 @@ func (m ColtechModel) Get(id int64) (*Coltech, error) {
 func (m ColtechModel) Update(coltech *Coltech) error {
 	query := `
 		UPDATE tblcoltech 
-		set summary = $1, description = $2, 
-		priority = $3, status = $4, assigned_to = $5,
-		category = $6, department = $7, closed_on = $8,
-		created_by = $9, due_on = $10, 
+		set summary = $2, description = $3, 
+		priority = $4, status = $5, assigned_to = $6,
+		category = $7, department = $8, closed_on = $9,
+		created_by = $10, due_on = $11, 
 		version = version + 1
-		WHERE id = $11
+		WHERE id = $1
 		AND version = $12
 		RETURNING version
 	`
@@ -206,14 +202,15 @@ func (m ColtechModel) Delete(id int64) error {
 func (m ColtechModel) GetAll(created_by string, assigned_to string, priority string, status string, filters Filters) ([]*Coltech, Metadata, error) {
 	// Construct the query
 	query := fmt.Sprintf(`
-		SELECT COUNT(*) OVER(), id, created_on, summary, description, priority, status, assigned_to, category, department, closed_on, created_by, due_on, version
+		SELECT COUNT(*) OVER(), id, created_on, summary, description, 
+		priority, status, assigned_to, category, department, closed_on, created_by, due_on, version
 		FROM tblcoltech
 		WHERE (to_tsvector('simple',created_by) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (to_tsvector('simple',assigned_to) @@ plainto_tsquery('simple', $2) OR $2 = '')
 		AND (to_tsvector('simple',priority) @@ plainto_tsquery('simple', $3) OR $3 = '')
 		AND (to_tsvector('simple',status) @@ plainto_tsquery('simple', $4) OR $4 = '')
 		ORDER BY %s %s, id ASC
-		LIMIT $4 OFFSET $5`, filters.sortColumn(), filters.sortOrder())
+		LIMIT $5 OFFSET $6`, filters.sortColumn(), filters.sortOrder())
 
 	// Create a 3-second-timeout context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -236,6 +233,7 @@ func (m ColtechModel) GetAll(created_by string, assigned_to string, priority str
 		err := rows.Scan(
 			&totalRecords,
 			&coltech.ID,
+			&coltech.Created_on,
 			&coltech.Summary,
 			&coltech.Description,
 			&coltech.Priority,
