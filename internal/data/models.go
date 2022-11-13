@@ -16,11 +16,13 @@ var (
 
 type Models struct {
 	Coltechs ColtechModel
+	Users    UserModel
 }
 
 // NewModels() allows us to create a new Models
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Coltechs: ColtechModel{DB: db},
+		Users:    UserModel{DB: db},
 	}
 }
