@@ -123,9 +123,9 @@ func (m UserModel) Insert(user *User) error {
 // Get user based on their email
 func (m UserModel) GetByEmail(email string) (*User, error) {
 	query := `
-	SELECT id, created_on, name, email, password_hash, activated, version
-	FROM tblUsers
-	WHERE email = $1
+		SELECT id, created_on, name, email, password_hash, activated, version
+		FROM tblUsers
+		WHERE email = $1
 	`
 	var user User
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
