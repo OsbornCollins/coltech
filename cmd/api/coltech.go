@@ -16,12 +16,12 @@ import (
 func (app *application) createCOLTECHItemHandler(w http.ResponseWriter, r *http.Request) {
 	// Our Target decode destination
 	var input struct {
-		Summary     string `json:"summary"`
-		Description string `json:"description"`
-		Department  string `json:"department"`
-		Category    string `json:"category"`
-		Priority    string `json:"priority"`
-		Created_by  string `json:"created_by"`
+		Summary      string `json:"summary"`
+		Description  string `json:"description"`
+		Department   string `json:"department"`
+		Category     string `json:"category"`
+		Priority_val string `json:"priority_val"`
+		Created_by   string `json:"created_by"`
 	}
 	// Initialize a new json.Decoder instance
 	err := app.readJSON(w, r, &input)
@@ -32,12 +32,12 @@ func (app *application) createCOLTECHItemHandler(w http.ResponseWriter, r *http.
 
 	//Copy the values from the input struct to a new coltech struct
 	coltech := &data.Coltech{
-		Summary:     input.Summary,
-		Description: input.Description,
-		Department:  input.Department,
-		Category:    input.Category,
-		Priority:    input.Priority,
-		Created_by:  input.Created_by,
+		Summary:      input.Summary,
+		Description:  input.Description,
+		Department:   input.Department,
+		Category:     input.Category,
+		Priority_val: input.Priority_val,
+		Created_by:   input.Created_by,
 	}
 	// initialize a new Validator instance
 	v := validator.New()
@@ -115,16 +115,16 @@ func (app *application) updateCOLTECHItemHandler(w http.ResponseWriter, r *http.
 	// default value of nil false
 	// if a field remains nil then we know that the client did not update it
 	var input struct {
-		Summary     *string    `json:"summary"`
-		Description *string    `json:"desription"`
-		Priority    *string    `json:"priority"`
-		Status      *string    `json:"status"`
-		Assigned_to *string    `json:"assigned_to"`
-		Category    *string    `json:"category"`
-		Department  *string    `json:"department"`
-		Closed_on   *time.Time `json:"closed_on"`
-		Created_by  *string    `json:"created_by"`
-		Due_on      *time.Time `json:"due_on"`
+		Summary      *string    `json:"summary"`
+		Description  *string    `json:"desription"`
+		Priority_val *string    `json:"priority_val"`
+		Status_val   *string    `json:"status_val"`
+		Assigned_to  *string    `json:"assigned_to"`
+		Category     *string    `json:"category"`
+		Department   *string    `json:"department"`
+		Closed_on    *time.Time `json:"closed_on"`
+		Created_by   *string    `json:"created_by"`
+		Due_on       *time.Time `json:"due_on"`
 	}
 
 	//Initalize a new json.Decoder instance
@@ -140,11 +140,11 @@ func (app *application) updateCOLTECHItemHandler(w http.ResponseWriter, r *http.
 	if input.Description != nil {
 		coltech.Description = *input.Description
 	}
-	if input.Priority != nil {
-		coltech.Priority = *input.Priority
+	if input.Priority_val != nil {
+		coltech.Priority_val = *input.Priority_val
 	}
-	if input.Status != nil {
-		coltech.Status = *input.Status
+	if input.Status_val != nil {
+		coltech.Status_val = *input.Status_val
 	}
 	if input.Assigned_to != nil {
 		coltech.Assigned_to = *input.Assigned_to
@@ -159,7 +159,7 @@ func (app *application) updateCOLTECHItemHandler(w http.ResponseWriter, r *http.
 		coltech.Closed_on = *input.Closed_on
 	}
 	if input.Created_by != nil {
-		coltech.Status = *input.Created_by
+		coltech.Created_by = *input.Created_by
 	}
 	if input.Due_on != nil {
 		coltech.Due_on = *input.Due_on
@@ -225,10 +225,10 @@ func (app *application) deleteCOLTECHItemHandler(w http.ResponseWriter, r *http.
 func (app *application) listCOLTECHItemsHandler(w http.ResponseWriter, r *http.Request) {
 	// Create an input struct to hold our query parameter
 	var input struct {
-		Created_by  string
-		Assigned_to string
-		Priority    string
-		Status      string
+		Created_by   string
+		Assigned_to  string
+		Priority_val string
+		Status_val   string
 		data.Filters
 	}
 	// Initialize a validator
@@ -238,22 +238,22 @@ func (app *application) listCOLTECHItemsHandler(w http.ResponseWriter, r *http.R
 	// use the helper methods to extract values
 	input.Created_by = app.readString(qs, "created_by", "")
 	input.Assigned_to = app.readString(qs, "assigned_to", "")
-	input.Priority = app.readString(qs, "priority", "")
-	input.Status = app.readString(qs, "status", "")
+	input.Priority_val = app.readString(qs, "priority_val", "")
+	input.Status_val = app.readString(qs, "status_val", "")
 	// Get the page information using the read int method
 	input.Filters.Page = app.readInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
 	// Get the sort information
 	input.Filters.Sort = app.readString(qs, "sort", "id")
 	// Specify the allowed sort values
-	input.Filters.SortList = []string{"id", "created_by", "priority", "assigned_to", "status", "-id", "-created_by", "-priority", "-assigned_to", "-status"}
+	input.Filters.SortList = []string{"id", "created_by", "priority_val", "assigned_to", "status_val", "-id", "-created_by", "-priority_val", "-assigned_to", "-status_val"}
 	// Check for validation errors
 	if data.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 	// Get a listing of all coltech items
-	coltechs, metadata, err := app.models.Coltechs.GetAll(input.Created_by, input.Assigned_to, input.Status, input.Priority, input.Filters)
+	coltechs, metadata, err := app.models.Coltechs.GetAll(input.Created_by, input.Assigned_to, input.Status_val, input.Priority_val, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

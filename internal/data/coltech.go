@@ -13,19 +13,19 @@ import (
 )
 
 type Coltech struct {
-	ID          int64     `json:"id"`
-	Created_on  time.Time `json:"created_on"`
-	Summary     string    `json:"summary"`
-	Description string    `json:"desription"`
-	Priority    string    `json:"priority"`
-	Status      string    `json:"status"`
-	Assigned_to string    `json:"assigned_to"`
-	Category    string    `json:"category"`
-	Department  string    `json:"department"`
-	Closed_on   time.Time `json:"closed_on"`
-	Created_by  string    `json:"created_by"`
-	Due_on      time.Time `json:"due_on"`
-	Version     int32     `json:"version"`
+	ID           int64     `json:"id"`
+	Created_on   time.Time `json:"created_on"`
+	Summary      string    `json:"summary"`
+	Description  string    `json:"desription"`
+	Priority_val string    `json:"priority_val"`
+	Status_val   string    `json:"status_val"`
+	Assigned_to  string    `json:"assigned_to"`
+	Category     string    `json:"category"`
+	Department   string    `json:"department"`
+	Closed_on    time.Time `json:"closed_on"`
+	Created_by   string    `json:"created_by"`
+	Due_on       time.Time `json:"due_on"`
+	Version      int32     `json:"version"`
 }
 
 func ValidateColtech(v *validator.Validator, coltech *Coltech) {
@@ -82,7 +82,7 @@ func (m ColtechModel) Get(id int64) (*Coltech, error) {
 	}
 	// Create query
 	query := `
-		SELECT id, created_on, summary, description, priority, status, assigned_to, category, department, closed_on, created_by, due_on, version
+		SELECT id, created_on, summary, description, priority_val, status_val, assigned_to, category, department, closed_on, created_by, due_on, version
 		FROM tblcoltech
 		WHERE id = $1
 	`
@@ -98,8 +98,8 @@ func (m ColtechModel) Get(id int64) (*Coltech, error) {
 		&coltech.Created_on,
 		&coltech.Summary,
 		&coltech.Description,
-		&coltech.Priority,
-		&coltech.Status,
+		&coltech.Priority_val,
+		&coltech.Status_val,
 		&coltech.Assigned_to,
 		&coltech.Category,
 		&coltech.Department,
@@ -127,7 +127,7 @@ func (m ColtechModel) Update(coltech *Coltech) error {
 	query := `
 		UPDATE tblcoltech 
 		set summary = $2, description = $3, 
-		priority = $4, status = $5, assigned_to = $6,
+		priority_val = $4, status_val = $5, assigned_to = $6,
 		category = $7, department = $8, closed_on = $9,
 		created_by = $10, due_on = $11, 
 		version = version + 1
@@ -143,8 +143,8 @@ func (m ColtechModel) Update(coltech *Coltech) error {
 		coltech.ID,
 		coltech.Summary,
 		coltech.Description,
-		coltech.Priority,
-		coltech.Status,
+		coltech.Priority_val,
+		coltech.Status_val,
 		coltech.Assigned_to,
 		coltech.Category,
 		coltech.Department,
@@ -199,23 +199,23 @@ func (m ColtechModel) Delete(id int64) error {
 }
 
 // The GetAll() returns a list of all the coltech items sorted by ID
-func (m ColtechModel) GetAll(created_by string, assigned_to string, priority string, status string, filters Filters) ([]*Coltech, Metadata, error) {
+func (m ColtechModel) GetAll(created_by string, assigned_to string, priority_val string, status_val string, filters Filters) ([]*Coltech, Metadata, error) {
 	// Construct the query
 	query := fmt.Sprintf(`
-		SELECT COUNT(*) OVER(), id, created_on, summary, description, 
-		priority, status, assigned_to, category, department, closed_on, created_by, due_on, version
+		SELECT COUNT(*) OVER(), id, created_on, summary, description, priority_val, status_val, assigned_to, category, department, closed_on, created_by, due_on, version
 		FROM tblcoltech
 		WHERE (to_tsvector('simple',created_by) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (to_tsvector('simple',assigned_to) @@ plainto_tsquery('simple', $2) OR $2 = '')
-		AND (to_tsvector('simple',priority) @@ plainto_tsquery('simple', $3) OR $3 = '')
-		AND (to_tsvector('simple',status) @@ plainto_tsquery('simple', $4) OR $4 = '')
+		AND (to_tsvector('simple',priority_val) @@ plainto_tsquery('simple', $4) OR $4 = '')
+		AND (to_tsvector('simple',status_val) @@ plainto_tsquery('simple', $3) OR $3 = '')
+				
 		ORDER BY %s %s, id ASC
 		LIMIT $5 OFFSET $6`, filters.sortColumn(), filters.sortOrder())
 
 	// Create a 3-second-timeout context
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	args := []interface{}{created_by, assigned_to, priority, status, filters.limit(), filters.offset()}
+	args := []interface{}{created_by, assigned_to, priority_val, status_val, filters.limit(), filters.offset()}
 	// Execute query
 	rows, err := m.DB.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -236,8 +236,8 @@ func (m ColtechModel) GetAll(created_by string, assigned_to string, priority str
 			&coltech.Created_on,
 			&coltech.Summary,
 			&coltech.Description,
-			&coltech.Priority,
-			&coltech.Status,
+			&coltech.Priority_val,
+			&coltech.Status_val,
 			&coltech.Assigned_to,
 			&coltech.Category,
 			&coltech.Department,
