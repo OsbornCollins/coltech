@@ -1,16 +1,17 @@
 {{/* Filename: internal/mailer/templates/user_welcome.tmpl */}}
-{{ define "subject" }}Welcome to Coltech!{{ end }}
-{{ define "plainbody" }}
-Hi,
 
-Thank you for signing up for an Coltech Account!
-We are excited to have you on board!
-For future reference, please note that your identification number
+{{ define "subject" }}Welcome to Coltech Ticket System!{{ end }}
+{{ define "plainBody" }}
+Hi, 
+
+Thank you for signing up for a Coltech Ticket System account! 
+We are excited to have you on board! 
+For future reference, please note that your identification number 
 is {{ .ID }}.
 
-Thanks,
+Thanks, 
 
-The Coltech Team
+The Coltech Ticket System
 {{ end }}
 
 {{ define "htmlBody" }}
@@ -20,20 +21,19 @@ The Coltech Team
 <head>
     <meta name="viewport" content="width=device-width"/>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
-</Head>
-
-
+</head>
 
 <body>
-    <p>Hi,</p>
+    <p>Hi,</p> 
 
-    <p>Thank you for signing up for an Coltech Account!</p>
-    <p>We are excited to have you on board!</p>
-    <p>For future reference, please note that your identification number
-    is {{ .ID }}.</p>
+    <p>Thank you for signing up for a Coltech Ticket System account!</p>
+    <p>We are excited to have you on board! </p>
+    <p>For future reference, please note that your identification number 
+    is {{ .ID }}. </p>
 
-    <p>Thanks,</p>
-    <p>The Coltech Team</p>  
+    <p>Thanks,</p> 
+
+    <p>The Coltech Ticket System Team </p>
 </body>
 </html>
 {{ end }}
