@@ -53,8 +53,17 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-	// Write a 201 Created staus
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
+
+	app.background(func() {
+		// Send the email to the new user
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
+		if err != nil {
+			// Log errors
+			app.logger.PrintError(err, nil)
+		}
+	})
+	// Write a 202 Accepted staus
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
