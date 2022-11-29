@@ -1,20 +1,20 @@
 # Create User
-BODY='{"name":"Gunna Wunna", "email":"gunna@example.com", "password":"passw0rd"}'
+BODY='{"name":"Jay Z", "email":"jayz@example.com", "password":"passw0rd"}'
 curl -w '\nTime: %{time_total}\n' -d "$BODY" localhost:4000/v1/users
 
 # Authenticate User
-BODY='{"email":"flume@example.com", "password":"passw0rd"}'
+BODY='{"email":"kanye@example.com", "password":"passw0rd"}'
 curl -i -d "$BODY" localhost:4000/v1/tokens/authentication
 
 {
         "authentication_token": {
-                "token": "EBG3YWBT7UCIL25GUSXJ2WUEE4",
+                "token": "GPC5LX7K2X5NJFXGMK7PZNDQYE",
                 "expiry": "2022-11-29T21:33:06.787035056-06:00"
         }
 }
 
 # Activate User
-curl -X PUT -d '{"token":"H6WA5ZO5O3I3P33P45VU4XKQV4"}' localhost:4000/v1/users/activated
+curl -X PUT -d '{"token":"EUVLLR256NGK7XMZ5IUGL3QJOA"}' localhost:4000/v1/users/activated
 
 
 
@@ -22,7 +22,7 @@ curl -X PUT -d '{"token":"H6WA5ZO5O3I3P33P45VU4XKQV4"}' localhost:4000/v1/users/
 curl localhost:4000/v1/healthcheck
 
 # ACCESS ENDPOINT BASED ON TOKEN
-curl -H "Authorization: Bearer IORKCF3LMHLCQLTKGTHX3SZ3F4" localhost:4000/v1/coltech_items/1
+curl -H "Authorization: Bearer 3CCS3QNPFI6YF3E6VI2KE4I77U" localhost:4000/v1/coltech_items/1
 
 
 
@@ -63,3 +63,18 @@ GROUP BY email;
 
 
 # Test the endpoints to verify that Permissions works
+
+BODY='{"summary":"Email Not Sending", "description":"I am not able to send emails to CEO", "category":"Outlook", "department":"Admin", "created_by":"BETTY WHITE"}'
+
+-- Kanye
+curl -H "Authorization: Bearer AD57TET56SYD4GIX2OFCY2JKL4" localhost:4000/v1/coltech_items/1
+curl -i -d "$BODY" -H "Authorization: Bearer AD57TET56SYD4GIX2OFCY2JKL4" localhost:4000/v1/coltech_items
+curl -X DELETE -H "Authorization: Bearer AD57TET56SYD4GIX2OFCY2JKL4" localhost:4000/v1/coltech_items/1
+
+--Betty
+curl -H "Authorization: Bearer VI7Y4C2CPGM2V62EVSVEQTNOY4" localhost:4000/v1/coltech_items/1
+curl -i -d "$BODY" -H "Authorization: Bearer VI7Y4C2CPGM2V62EVSVEQTNOY4" localhost:4000/v1/coltech_items
+curl -X DELETE -H "Authorization: Bearer VI7Y4C2CPGM2V62EVSVEQTNOY4" localhost:4000/v1/coltech_items/5
+
+
+
