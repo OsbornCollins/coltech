@@ -1,0 +1,65 @@
+# Create User
+BODY='{"name":"Gunna Wunna", "email":"gunna@example.com", "password":"passw0rd"}'
+curl -w '\nTime: %{time_total}\n' -d "$BODY" localhost:4000/v1/users
+
+# Authenticate User
+BODY='{"email":"flume@example.com", "password":"passw0rd"}'
+curl -i -d "$BODY" localhost:4000/v1/tokens/authentication
+
+{
+        "authentication_token": {
+                "token": "EBG3YWBT7UCIL25GUSXJ2WUEE4",
+                "expiry": "2022-11-29T21:33:06.787035056-06:00"
+        }
+}
+
+# Activate User
+curl -X PUT -d '{"token":"H6WA5ZO5O3I3P33P45VU4XKQV4"}' localhost:4000/v1/users/activated
+
+
+
+# Accessing endpoints anonymously
+curl localhost:4000/v1/healthcheck
+
+# ACCESS ENDPOINT BASED ON TOKEN
+curl -H "Authorization: Bearer IORKCF3LMHLCQLTKGTHX3SZ3F4" localhost:4000/v1/coltech_items/1
+
+
+
+Permissions:
+
+read (fetch + filter)
+write (create + edit + delete)
+
+GET /v1/coltech_items		coltech_items:read
+POST /v1/coltech_items		coltech_items:write
+GET /v1/coltech_items/:id	coltech_items:read
+PATCH /v1/coltech_items/:id	coltech_items:write
+DELETE /v1/coltech/items/:id	coltech_items:write
+
+#Give all users read Permissions
+INSERT INTO users_permissions
+SELECT id, (SELECT id FROM permissions WHERE code = 'coltech_items:read') FROM tblusers;
+
+
+
+#Give user panda write Permissions
+INSERT INTO users_permissions(user_id, permission_id)
+VALUES(
+(SELECT id FROM tblusers WHERE email = 'betty@example.com'),
+(SELECT id FROM permissions WHERE code = 'coltech_items:write')
+);
+
+
+#List the activated users and their Permissions
+SELECT email, array_agg(permissions.code) AS permissions
+FROM permissions
+INNER JOIN users_permissions
+ON users_permissions.permission_id = permissions.id
+INNER JOIN tblusers
+ON users_permissions.user_id = tblusers.id
+WHERE tblusers.activated = true
+GROUP BY email;
+
+
+# Test the endpoints to verify that Permissions works

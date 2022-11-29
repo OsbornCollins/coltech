@@ -15,16 +15,18 @@ var (
 // Create a Wrapper for our data models
 
 type Models struct {
-	Coltechs ColtechModel
-	Tokens   TokenModel
-	Users    UserModel
+	Coltechs    ColtechModel
+	Permissions PermissionModel
+	Tokens      TokenModel
+	Users       UserModel
 }
 
 // NewModels() allows us to create a new Models
 func NewModels(db *sql.DB) Models {
 	return Models{
-		Coltechs: ColtechModel{DB: db},
-		Tokens:   TokenModel{DB: db},
-		Users:    UserModel{DB: db},
+		Coltechs:    ColtechModel{DB: db},
+		Permissions: PermissionModel{DB: db},
+		Tokens:      TokenModel{DB: db},
+		Users:       UserModel{DB: db},
 	}
 }
