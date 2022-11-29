@@ -4,6 +4,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"time"
@@ -16,6 +17,9 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
+// Declare an AnonymousUser
+var AnonymousUser = &User{}
+
 type User struct {
 	ID         int64     `json:"id"`
 	Created_on time.Time `json:"created_on"`
@@ -24,6 +28,11 @@ type User struct {
 	Password   password  `json:"-"`
 	Activated  bool      `json:"activated"`
 	Version    int       `json:"-"`
+}
+
+// Check if a user is anonymous
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 // Create a custom password type
@@ -180,4 +189,42 @@ func (m UserModel) Update(user *User) error {
 		}
 	}
 	return nil
+}
+
+func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+	// Setup query
+	query := `
+		SELECT tblusers.id, tblusers.created_on, tblusers.name, tblusers.email, 
+		tblusers.password_hash, tblusers.activated, tblusers.version
+		FROM tblusers
+		INNER JOIN tokens
+		ON tblusers.id = tokens.user_id
+		WHERE tokens.hash = $1
+		AND tokens.scope = $2
+		AND tokens.expiry > $3
+	`
+	args := []interface{}{tokenHash[:], tokenScope, time.Now()}
+	var user User
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID,
+		&user.Created_on,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
 }
