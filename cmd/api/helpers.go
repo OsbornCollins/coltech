@@ -22,10 +22,10 @@ type envelope map[string]interface{}
 func (app *application) readIDParam(r *http.Request) (int64, error) {
 	// Use the "ParamsFromContext()" function to get the request context as a slice
 	params := httprouter.ParamsFromContext(r.Context())
-	// Get the value of the "id" paramter
+	// Get the value of the "id" parameter
 	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
 	if err != nil || id < 1 {
-		return 0, errors.New("invalid id param")
+		return 0, errors.New("invalid id parameter")
 	}
 	return id, nil
 }
@@ -51,8 +51,8 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 }
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
-	// Use http.MaxBytereader() to limit the size of the request body to
-	// 1MB 2^20
+	// Use http.MaxBytesreader() to limit the size of the request body to
+	// 1 MB 2^20
 	maxBytes := 1_048_576
 	// Decode the request body into the target destination
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -60,7 +60,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	dec.DisallowUnknownFields()
 	err := dec.Decode(dst)
 
-	//Check for a bad request
+	// Check for a bad request
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
@@ -70,10 +70,10 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 		switch {
 		//Check for syntax errors
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf("body contains badly formed JSON(at character %d)", syntaxError.Offset)
+			return fmt.Errorf("body contains badly-formed JSON(at character %d)", syntaxError.Offset)
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			return errors.New("body contains badly formed JSON")
-		// Check for wrong type passed by the client
+			return errors.New("body contains badly-formed JSON")
+		// Check for wrong types passed by the client
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
 				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
@@ -122,6 +122,7 @@ func (app *application) readString(qs url.Values, key string, defaultValue strin
 // If the value cannot be converted to an integer then a validation error is added to
 // the validations errors map.
 func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
+	// Get the value
 	value := qs.Get(key)
 	if value == "" {
 		return defaultValue
@@ -129,7 +130,7 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 	// Perform the conversion to an integer
 	intValue, err := strconv.Atoi(value)
 	if err != nil {
-		v.AddError(key, "must be a valid integer value")
+		v.AddError(key, "must be an integer value")
 		return defaultValue
 	}
 	return intValue

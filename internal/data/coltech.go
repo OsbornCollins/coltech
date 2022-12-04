@@ -65,13 +65,15 @@ func (m ColtechModel) Insert(coltech *Coltech) error {
 	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id, created_on, version
 	`
+	// Collect the data fields into a slice
+	args := []interface{}{
+		coltech.Summary, coltech.Description,
+		coltech.Category, coltech.Department,
+		coltech.Created_by,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	// Cleanup to prevent memory leaks
 	defer cancel()
-	// Collect the data fields into a slice
-	args := []interface{}{coltech.Summary, coltech.Description,
-		coltech.Category, coltech.Department, coltech.Created_by,
-	}
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&coltech.ID, &coltech.Created_on, &coltech.Version)
 }
 
@@ -135,10 +137,6 @@ func (m ColtechModel) Update(coltech *Coltech) error {
 		AND version = $12
 		RETURNING version
 	`
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	// Cleanup to prevent memory leaks
-	defer cancel()
-
 	args := []interface{}{
 		coltech.ID,
 		coltech.Summary,
@@ -153,6 +151,10 @@ func (m ColtechModel) Update(coltech *Coltech) error {
 		coltech.Due_on,
 		coltech.Version,
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	// Cleanup to prevent memory leaks
+	defer cancel()
 	// Check for edit conflicts
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&coltech.Version)
 	if err != nil {
